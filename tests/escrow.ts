@@ -35,8 +35,8 @@ describe("escrow", () => {
 
   // Escrow state
   const seed = new BN(42);
-  const depositAmount = new BN(1_000_000);   // 1 token A (6 decimals)
-  const receiveAmount = new BN(2_000_000);   // 2 token B (6 decimals)
+  const depositAmount = new BN(1_000_000); // 1 token A (6 decimals)
+  const receiveAmount = new BN(2_000_000); // 2 token B (6 decimals)
 
   let escrowPda: PublicKey;
   let vaultAta: PublicKey;
@@ -46,10 +46,10 @@ describe("escrow", () => {
   before(async () => {
     // Airdrop SOL to maker and taker so they can pay fees & rent
     await connection.confirmTransaction(
-      await connection.requestAirdrop(maker.publicKey, 2 * LAMPORTS_PER_SOL)
+      await connection.requestAirdrop(maker.publicKey, 2 * LAMPORTS_PER_SOL),
     );
     await connection.confirmTransaction(
-      await connection.requestAirdrop(taker.publicKey, 2 * LAMPORTS_PER_SOL)
+      await connection.requestAirdrop(taker.publicKey, 2 * LAMPORTS_PER_SOL),
     );
 
     // Create mint A (maker's token) — provider wallet is mint authority
@@ -58,7 +58,7 @@ describe("escrow", () => {
       (provider.wallet as anchor.Wallet).payer,
       provider.wallet.publicKey,
       null,
-      6
+      6,
     );
 
     // Create mint B (taker's token)
@@ -67,7 +67,7 @@ describe("escrow", () => {
       (provider.wallet as anchor.Wallet).payer,
       provider.wallet.publicKey,
       null,
-      6
+      6,
     );
 
     // Create ATAs
@@ -75,25 +75,25 @@ describe("escrow", () => {
       connection,
       (provider.wallet as anchor.Wallet).payer,
       mintA,
-      maker.publicKey
+      maker.publicKey,
     );
     makerAtaB = await createAssociatedTokenAccount(
       connection,
       (provider.wallet as anchor.Wallet).payer,
       mintB,
-      maker.publicKey
+      maker.publicKey,
     );
     takerAtaA = await createAssociatedTokenAccount(
       connection,
       (provider.wallet as anchor.Wallet).payer,
       mintA,
-      taker.publicKey
+      taker.publicKey,
     );
     takerAtaB = await createAssociatedTokenAccount(
       connection,
       (provider.wallet as anchor.Wallet).payer,
       mintB,
-      taker.publicKey
+      taker.publicKey,
     );
 
     // Fund wallets with tokens
@@ -103,7 +103,7 @@ describe("escrow", () => {
       mintA,
       makerAtaA,
       provider.wallet.publicKey,
-      depositAmount.toNumber() * 2 // extra so maker can make multiple escrows in tests
+      depositAmount.toNumber() * 2, // extra so maker can make multiple escrows in tests
     );
     await mintTo(
       connection,
@@ -111,7 +111,7 @@ describe("escrow", () => {
       mintB,
       takerAtaB,
       provider.wallet.publicKey,
-      receiveAmount.toNumber() * 2
+      receiveAmount.toNumber() * 2,
     );
 
     // Derive escrow PDA address
@@ -121,7 +121,7 @@ describe("escrow", () => {
         maker.publicKey.toBuffer(),
         seed.toArrayLike(Buffer, "le", 8),
       ],
-      program.programId
+      program.programId,
     );
 
     // Derive vault ATA (owned by escrow PDA)
@@ -150,7 +150,7 @@ describe("escrow", () => {
     assert.equal(
       vault.amount.toString(),
       depositAmount.toString(),
-      "Vault should hold the deposited token A amount"
+      "Vault should hold the deposited token A amount",
     );
 
     // Escrow account should store correct state
@@ -190,7 +190,7 @@ describe("escrow", () => {
     assert.equal(
       (makerAtaBAfter.amount - makerAtaBBefore.amount).toString(),
       receiveAmount.toString(),
-      "Maker should receive the requested token B amount"
+      "Maker should receive the requested token B amount",
     );
 
     // Taker should have received token A from vault
@@ -198,7 +198,7 @@ describe("escrow", () => {
     assert.equal(
       (takerAtaAAfter.amount - takerAtaABefore.amount).toString(),
       depositAmount.toString(),
-      "Taker should receive the deposited token A amount"
+      "Taker should receive the deposited token A amount",
     );
 
     // Escrow account should be closed
@@ -217,12 +217,12 @@ describe("escrow", () => {
         maker.publicKey.toBuffer(),
         refundSeed.toArrayLike(Buffer, "le", 8),
       ],
-      program.programId
+      program.programId,
     );
     const refundVaultAta = getAssociatedTokenAddressSync(
       mintA,
       refundEscrowPda,
-      true
+      true,
     );
 
     // Make a new escrow
@@ -261,14 +261,14 @@ describe("escrow", () => {
     assert.equal(
       (makerAtaAAfter.amount - makerAtaABefore.amount).toString(),
       depositAmount.toString(),
-      "Maker should get the deposited token A back on refund"
+      "Maker should get the deposited token A back on refund",
     );
 
     // Escrow account should be closed
     const escrowAccount = await connection.getAccountInfo(refundEscrowPda);
     assert.isNull(
       escrowAccount,
-      "Escrow account should be closed after refund"
+      "Escrow account should be closed after refund",
     );
   });
 });
